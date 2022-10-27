@@ -36,7 +36,9 @@ void parse_arguments(int args, char*argv[]){
 int main(int args, char*argv[]){
   file = fopen("udp.pcap", "r");
   parse_arguments(args, argv);
-  pcap_t *morebu;
-  morebu = pcap_fopen_offline(file, errbuf);
+  char *dev;
+  dev = pcap_lookupdev(errbuf);
+  //pcap_t *morebu;
+  //morebu = pcap_fopen_offline(file, errbuf);
   return 0;
 }
