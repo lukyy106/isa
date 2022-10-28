@@ -1,2 +1,2 @@
 all: netflow
-	gcc netflow.c -o netflow -lpcap bin
+	gcc netflow.c netflow -lpcap -o
