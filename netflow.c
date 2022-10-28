@@ -37,7 +37,7 @@ int main(int args, char*argv[]){
   //file = fopen("udp.pcap", "r");
   //parse_arguments(args, argv);
   //char *dev;
-  pcap_t **iface = NULL;
+  pcap_if_t **iface;
   char errbuf[PCAP_ERRBUF_SIZE];
   int i = pcap_findalldevs(iface, errbuf);
   //pcap_t *morebu;
