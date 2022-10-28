@@ -39,7 +39,8 @@ int main(int args, char*argv[]){
   //char *dev;
   pcap_if_t **iface;
   char errbuf[PCAP_ERRBUF_SIZE];
-  int i = pcap_findalldevs(iface, errbuf);
+  printf("%s", pcap_lib_version());
+  //int i = pcap_findalldevs(iface, errbuf);
   //pcap_t *morebu;
   //morebu = pcap_fopen_offline(file, errbuf);
   return 0;
