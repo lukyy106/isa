@@ -1,4 +1,6 @@
 typedef unsigned int u_int;
+typedef unsigned short u_short;
+typedef unsigned char u_char;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
