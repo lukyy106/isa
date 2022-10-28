@@ -4,7 +4,7 @@
 #include <pcap/pcap.h>
 #include <stdbool.h>
 //#include <argp.h>
-/*
+
 FILE *file;
 bool file_flag = false;
 //char *file = "-";
@@ -31,16 +31,15 @@ void parse_arguments(int args, char*argv[]){
     }
   }
 }
-*/
+
 
 int main(int args, char*argv[]){
   //file = fopen("udp.pcap", "r");
   //parse_arguments(args, argv);
   //char *dev;
-  pcap_if_t **iface;
-  char errbuf[PCAP_ERRBUF_SIZE];
-  printf("%s", pcap_lib_version());
-  //int i = pcap_findalldevs(iface, errbuf);
+  pcap_if_t **iface = NULL;
+  printf("%s\n", pcap_lib_version());
+  pcap_t *i = pcap_fopen_offline("-", errbuf);
   //pcap_t *morebu;
   //morebu = pcap_fopen_offline(file, errbuf);
   return 0;
