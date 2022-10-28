@@ -1,10 +1,11 @@
+typedef unsigned int u_int;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pcap/pcap.h>
 #include <stdbool.h>
 #include <stdint.h>
-typedef unsigned int u_int;
+
 //#include <argp.h>
 
 FILE *file;
