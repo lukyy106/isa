@@ -4,6 +4,7 @@
 #include <pcap/pcap.h>
 #include <stdbool.h>
 #include <stdint.h>
+typedef unsigned int u_int;
 //#include <argp.h>
 
 FILE *file;
