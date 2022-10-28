@@ -1,3 +1,3 @@
 all: netflow
 	#g++ -o flow flow.cpp
-	gcc -o netflow netflow.c -lpcap
+	gcc netflow.c -o netflow -lpcap
