@@ -1,31 +1,37 @@
+/*
+Author - Lukas Neupauer
+Date - 11.2022
+Program - netflow, project to ISA, VUT FIT
+*/
+
 #include "netflow.h"
 
 
 
-FILE *file;
-bool file_flag = false;
-char *collector_addr = "127.0.0.1";
-char *port = "2055";
-unsigned int active_timer = 60;
-unsigned int inactive_timer = 10;
-int count_size = 1024;
-int flow_counter = 0;
-char errbuf[PCAP_ERRBUF_SIZE];
-u_char protocol;
-struct list_s *list;
-struct pcap_pkthdr header;
-struct ether_header *eth_h;
-struct ip *ip_h;
-struct tcphdr *tcp_h;
-struct udphdr *udp_h;
-struct icmphdr *icmp_h;
-const u_char *packet;
-int sock;
-struct sockaddr_in server;
-struct hostent *servent;
+FILE *file; // pcap file pointer
+bool file_flag = false; // read from file
+char *collector_addr = "127.0.0.1"; // collector address
+char *port = "2055"; // collector port
+unsigned int active_timer = 60; // max time flow is on program
+unsigned int inactive_timer = 10; // time of inactivity after flow is exported
+int count_size = 1024; // max flows at once in program
+int flow_counter = 0; // curren number of flows in program
+char errbuf[PCAP_ERRBUF_SIZE]; // error for handle
+u_char protocol; // type of protocol
+struct list_s *list; // list of flows
+struct pcap_pkthdr header; // packet header
+struct ether_header *eth_h; // ethernet header
+struct ip *ip_h; // ip header
+struct tcphdr *tcp_h; // tcp header
+struct udphdr *udp_h; // udp header
+struct icmphdr *icmp_h; // icmp header
+const u_char *packet; // packet
+int sock; // socket for connection with collector
+struct sockaddr_in server; // server
+struct hostent *servent; // servent
 
 
-
+// parse arguments from command line
 void parse_arguments(int args, char*argv[]){
   for(int i = 1; i < args; i+=2){
     if(i+1 == args){
@@ -41,7 +47,7 @@ void parse_arguments(int args, char*argv[]){
       }
       file_flag = true;
     }else if(!strcmp(argv[i], "-c")){
-      if(strchr(argv[i+1], ':') != NULL){
+      if(strchr(argv[i+1], ':') != NULL){ // looks for : in string and divide address from port is there is :
         char* input = ":";
         collector_addr = strtok(argv[i+1], input);
         port = strtok(NULL, ":");
@@ -61,15 +67,14 @@ void parse_arguments(int args, char*argv[]){
   }
 }
 
-
+// set headers and protocol for every packet
 void initialize_values(){
   eth_h = (struct ether_header *) packet;
   ip_h = (struct ip *)(packet + sizeof(struct ether_header));
   protocol = *(packet + ETHERNET_HEADER_LENGH + 9); // protocol is stored in packet as 10th byte
-  tcp_h = (struct tcphdr *)(packet + ip_h->ip_hl + sizeof(struct ether_header));
 }
 
-
+// assigne packet to flow of make new flow
 void new_packet(time_t time_s, suseconds_t time_us, u_short source_port, u_short dst_port, u_int8_t tos, unsigned long source_addr, unsigned long dst_addr, struct list_s *list_2, unsigned int packet_lengh, u_int8_t flags){
   struct list_s *prev = list_2;
   while(list_2 != NULL){
@@ -81,10 +86,9 @@ void new_packet(time_t time_s, suseconds_t time_us, u_short source_port, u_short
         if(dst_port == list_2->c_flow.flow.dest_port){
           if(tos == list_2->c_flow.flow.tos){
             if(source_addr == list_2->c_flow.flow.src_ip){
-              if(dst_addr == list_2->c_flow.flow.dest_ip){
+              if(dst_addr == list_2->c_flow.flow.dest_ip){ // packet part of existing flow
                 list_2->c_flow.flow.flow_packets += htonl(1);
                 list_2->c_flow.flow.flow_finish = htonl(htonl(list_2->c_flow.flow.flow_start) + (htonl(time_s) - htonl(list_2->c_flow.header.time_sec))*1000 + (htonl(time_us)/1000 - htonl(list_2->c_flow.header.time_nanosec)/1000000));
-                //printf("%u   toto co je\n", (htonl(time_s) - htonl(list_2->c_flow.header.time_sec))*1000 + (htonl(time_us)/1000 - htonl(list_2->c_flow.header.time_nanosec)/1000000));
                 list_2->c_flow.header.uptime_ms = htonl(htonl(time_us) / 1000);
                 list_2->c_flow.flow.flow_octets += htonl(packet_lengh);
                 list_2->last_change = time_s;
@@ -97,7 +101,7 @@ void new_packet(time_t time_s, suseconds_t time_us, u_short source_port, u_short
     }
     list_2 = list_2->next;
   }
-
+  // new flow is made
   flow_counter++;
 
   while(prev->next != NULL){
@@ -142,7 +146,7 @@ void new_packet(time_t time_s, suseconds_t time_us, u_short source_port, u_short
   list_2->next = NULL;
 }
 
-
+// send flow to collector
 void export(struct list_s *list_2){
   flow_counter--;
   struct list_s *next = list_2->next;
@@ -166,13 +170,13 @@ void export(struct list_s *list_2){
   free(list_2);
 }
 
-
+// check active and inactive timer and send flows is needed
 void timer(struct list_s *list_2, time_t time){
   while(list_2 != NULL){
-    if(!list_2->filled)
+    if(!list_2->filled) // no flow yet
       return;
 
-    if(htonl(time) - htonl(list_2->c_flow.header.time_sec) >= active_timer || time - htonl(list_2->last_change) - htonl(time) >= inactive_timer){
+    if(htonl(time) - htonl(list_2->c_flow.header.time_sec) >= active_timer || time - htonl(list_2->last_change) - htonl(time) >= inactive_timer){ // timer trigger
       export(list_2);
       list_2 = list;
       continue;
@@ -184,18 +188,12 @@ void timer(struct list_s *list_2, time_t time){
 
 
 int main(int args, char*argv[]){
-  int app = 0;
   parse_arguments(args, argv);
   pcap_t *handle;
-  list = malloc(sizeof(struct list_s));
-  list->next = NULL;
-  list->prev = NULL;
-  list->filled = 0;
   memset(&server,0,sizeof(server));
   server.sin_family = AF_INET;
   if((servent = gethostbyname(collector_addr)) == NULL){
     warn("gethostbyname() failed\n");
-    free(list);
     return 1;
   }
 
@@ -203,13 +201,11 @@ int main(int args, char*argv[]){
   server.sin_port = htons(atoi(port));
   if((sock = socket(AF_INET , SOCK_DGRAM , 0)) == -1){   //create a client socket
     warn("socket() failed\n");
-    free(list);
     return 1;
   }
 
   if(connect(sock, (struct sockaddr *)&server, sizeof(server))  == -1){
     warn("connect() failed");
-    free(list);
     return 1;
   }
 
@@ -219,6 +215,11 @@ int main(int args, char*argv[]){
   }else{
     handle = pcap_open_offline("-", errbuf);
   }
+
+  list = malloc(sizeof(struct list_s));
+  list->next = NULL;
+  list->prev = NULL;
+  list->filled = 0;
 
 
   while(1){

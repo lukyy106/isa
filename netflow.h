@@ -1,3 +1,9 @@
+/*
+Author - Lukas Neupauer
+Date - 11.2022
+Program - netflow, project to ISA, VUT FIT
+*/
+
 #define __FAVOR_BDS
 #define ETHERNET_HEADER_LENGH 14
 #include <stdio.h>
@@ -21,7 +27,7 @@
 
 
 
-
+// flow header
 struct NF5_header{
   u_int16_t version, count;
   u_int32_t uptime_ms, time_sec, time_nanosec;
@@ -30,6 +36,7 @@ struct NF5_header{
   u_int16_t sampling_interval;
 };
 
+// flow data
 struct NF5_flow{
   u_int32_t src_ip, dest_ip, nexthop_ip;
   u_int16_t if_index_in, if_index_out;
@@ -43,12 +50,13 @@ struct NF5_flow{
   u_int16_t pad2;
 };
 
+// hole flow for sending to collctor
 struct complete_flow{
   struct NF5_header header;
   struct NF5_flow flow;
 };
 
-
+// list of flows
 struct list_s{
   struct list_s *next;
   struct list_s *prev;

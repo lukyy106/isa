@@ -8,3 +8,24 @@ flow - read flows from pcap
 [\fB\-a\fR \fIactive_timer\fR]
 [\fB\-i\fR \fIinactive_timer\fR]
 [\fB\-m\fR \fImax_flows\fR]
+.SH DESCRIPTION
+.B flow
+reads data from pcap file and finds flows in it, flows are sendet on collctor afterwords use \fBnfcapd\fR and \fBnfdump\fR for testing
+.SH OPTIONS
+.BR \-f " " \fIfile\fR
+file from witch program fread data, STDIN by default
+.sp
+.BR \-c " " \fIcollector:port\fR
+addres of hostname of collector, port optional, 123.0.0.1:2055 by default
+.sp
+.BR \-a " " \fIactive_timer\fR
+secons after witch the flow will be exported, 60 by default
+.sp
+.BR \-i " " \fIinactive_timer\fR
+secons of inactivity after witch the flow will be exported, 10 by default
+.sp
+.BR \-m " " \fIcount\fR
+max flows at once tha program will handle, 1024 by default
+
+.SH EXAMPLE OF USE
+  ./flow -f file.pcap -m 5 -a 10 -i 5 -c locallhost:2055
