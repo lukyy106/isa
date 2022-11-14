@@ -1,7 +1,4 @@
 #define __FAVOR_BDS
-typedef unsigned int u_int;
-typedef unsigned short u_short;
-typedef unsigned char u_char;
 #define ETHERNET_HEADER_LENGH 14
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,38 +14,11 @@ typedef unsigned char u_char;
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <netinet/udp.h>
-//#include <netinet/icmp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 
 
 
-
-struct data_s{
-  struct data_s *next;
-  u_int len;
-  char *data;
-};
-
-struct flow_s{
-  u_int packets;
-  time_t time;
-  time_t last_chng;
-  u_char protocol;
-  u_short source_port;
-  u_short dst_port;
-  u_int8_t tos;
-  unsigned long source_addr;
-  unsigned long dst_addr;
-  struct data_s *data;
-};
-
-
-struct list_s{
-  struct list_s *next;
-  struct list_s *prev;
-  struct flow_s flow;
-};
 
 struct NF5_header{
   u_int16_t version, count;
@@ -71,7 +41,15 @@ struct NF5_flow{
   u_int16_t pad2;
 };
 
-struct toto_posli{
+struct complete_flow{
   struct NF5_header header;
   struct NF5_flow flow;
+};
+
+
+struct list_s{
+  struct list_s *next;
+  struct list_s *prev;
+  struct complete_flow c_flow;
+  bool filled;
 };
