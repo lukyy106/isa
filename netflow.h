@@ -16,6 +16,8 @@
 #include <netinet/udp.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <netdb.h>
+#include <err.h>
 
 
 
@@ -51,5 +53,6 @@ struct list_s{
   struct list_s *next;
   struct list_s *prev;
   struct complete_flow c_flow;
+  time_t last_change;
   bool filled;
 };
